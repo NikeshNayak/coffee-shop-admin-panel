@@ -1,0 +1,17 @@
+.search-wrapper {
+  position: relative;
+  width: 100%; /* Ensure it takes up the full width available */
+}
+
+.search-input {
+  padding-right: 35px; /* Leave space for the icon */
+}
+
+.search-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%); /* Vertically center the icon */
+  color: #999; /* Adjust the color if needed */
+  font-size: 16px;
+}
