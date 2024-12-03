@@ -7,10 +7,6 @@ import snapShareSM from "../assets/app-sm-logo.png";
 
 const Header = ({ toggleMenuCallback, toggleChangeThemeCallback }) => {
   const [isSearch, setIsSearch] = useState(false);
-  const { staffDetails, loading, error } = useSelector((state) => {
-    console.log(state.staffDetails);
-    return state.staffDetails;
-  });
 
   const theme = useSelector((state) => state.Layout.theme);
 
@@ -48,27 +44,7 @@ const Header = ({ toggleMenuCallback, toggleChangeThemeCallback }) => {
     }
   };
 
-  const getNavigationLink = () => {
-    const permissionsMap = {
-      dashboard: "/",
-      companies: "/companies",
-      agents: "/agents",
-      categories: "/categories",
-      keys: "/keys",
-      reports: "/reports",
-    };
-
-    const userPermissions = staffDetails?.permissions || [];
-    for (const { groupPermissionAlias } of userPermissions) {
-      if (permissionsMap[groupPermissionAlias]) {
-        return permissionsMap[groupPermissionAlias];
-      }
-    }
-    return "/"; // Default if no permissions match
-  };
-
-  const navigationLink =
-    staffDetails?.userType === "STAFF" ? getNavigationLink() : "/dashboard";
+  const navigationLink = "/users";
 
   return (
     <React.Fragment>

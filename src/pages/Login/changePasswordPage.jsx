@@ -108,7 +108,7 @@ export default function ChangePasswordPage() {
     sendRequest,
     clearData,
     clearError,
-  } = useHttp(`${BASEURL}${APIRoutes.changepassword}?staffId=${staffId}`, requestConfig);
+  } = useHttp(`${BASEURL}${APIRoutes.changepassword}?id=${staffId}`, requestConfig);
 
   const handleInputChange = (e) => {
     console.log(e);
@@ -147,7 +147,7 @@ export default function ChangePasswordPage() {
     if (formRef.current) {
       formRef.current.reset();
     }
-    navigate("/dashboard");
+    navigate("/users");
   }
 
   let actions = (

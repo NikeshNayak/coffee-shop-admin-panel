@@ -1,5 +1,7 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { useState, useEffect } from "react";
+import * as XLSX from "xlsx";
+import { Button, CircularProgress, TextField } from "@mui/material";
 import axios from "axios";
 import {
   APIRoutes,
@@ -8,14 +10,18 @@ import {
 } from "../../configs/globalConfig";
 import { useCallback } from "react";
 import PaginatedDataTable from "../../components/PaginatedDataTable";
-import PageTitleWithButton from "../../components/PageTitleWithButton";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import UIButton from "../../components/UI/UIButton";
 import CustomSnackBar from "../../components/UI/CustomSnackBar";
-import { Card, CardBody, Col, Container, Row } from "reactstrap";
+import { Card, CardBody, Col, Container, Form, Input, Row } from "reactstrap";
 import ConfirmationModal from "../../components/UI/ConfirmationModal";
+import Select from "react-select";
 import DataTableSearchBar from "../../components/DataTableSearchBar";
+import { Clear, SaveAlt, Tune } from "@mui/icons-material";
+import { useSelector } from "react-redux";
+import Breadcrumbs from "../../components/Breadcrumb";
 
-export default function StaffListPage() {
+export default function UsersListPage() {
   const navigate = useNavigate();
 
   const [actionModal, setActionModal] = useState({
@@ -24,7 +30,7 @@ export default function StaffListPage() {
     message: "",
     action: "",
   });
-  const [selectedStaff, setSelectedStaff] = useState(null);
+  const [selectedUser, setSelectedUser] = useState(null);
   const [snackBarMsg, setSnackMsg] = useState({
     isOpen: false,
     isSuccess: null,
@@ -33,8 +39,11 @@ export default function StaffListPage() {
 
   const [error, setError] = useState(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [openFilter, setOpenFilter] = useState(false);
+  const [applyFilter, setApplyFilter] = useState(false);
 
   const [items, setItems] = useState([]);
+  const [countriesList, setCountryList] = useState([]);
   const [totalRows, setTotalRows] = useState(0);
   const [paginationModel, setPaginationModel] = useState({
     pageSize: 10,
@@ -45,6 +54,22 @@ export default function StaffListPage() {
   ]);
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [filters, setFilters] = useState({
+    city: "",
+    state: "",
+    country: "",
+    createdAt: "",
+  });
+
+  const buildFilterParams = (filters) => {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== "") {
+        params.append(key, value);
+      }
+    });
+    return params.toString();
+  };
 
   const fetchData = useCallback(async (page, pageSize, query, sortConfig) => {
     try {
@@ -55,26 +80,26 @@ export default function StaffListPage() {
         sortField !== "" && sortDirection !== ""
           ? `&sortField=${sortField}&sortDirection=${sortDirection}`
           : "";
-      const endpoint = `${BASEURL}${APIRoutes.staffList}?page=${page}&limit=${pageSize}${searchParams}${sortParams}`;
+      const endpoint = `${BASEURL}${APIRoutes.getUsersList}?page=${page}&limit=${pageSize}${searchParams}${sortParams}`;
       const response = await axios.get(endpoint);
 
-      const staffList = response.data.staffList.map((item, index) => ({
+      const userList = response.data.users.map((item, index) => ({
         ...item,
         id: (page - 1) * pageSize + (index + 1),
       }));
       setIsLoaded(true);
-      setItems(staffList);
-      setTotalRows(response.data.totalRowsCount || 0);
+      setItems(userList);
+      setTotalRows(response.data.totalUsers || 0);
     } catch (error) {
       setIsLoaded(true);
       setError(error);
     }
   }, []);
 
-  const deleteStaffRequest = useCallback(
-    async function deleteStaffRequest(id) {
+  const deleteUserRequest = useCallback(
+    async function deleteUserRequest(id) {
       try {
-        const url = `${BASEURL}${APIRoutes.deleteStaff}?staffId=${id}`;
+        const url = `${BASEURL}${APIRoutes.deleteUsers}/${id}`;
         const response = await axios.get(url);
         if (response.status === 200) {
           if (response.data.success === true) {
@@ -87,6 +112,7 @@ export default function StaffListPage() {
               paginationModel.page + 1,
               paginationModel.pageSize,
               searchQuery,
+              filters,
               sortModel
             );
           } else {
@@ -105,55 +131,18 @@ export default function StaffListPage() {
         });
       }
     },
-    [fetchData, paginationModel, searchQuery, sortModel]
+    [fetchData, paginationModel, searchQuery, filters, sortModel]
   );
-
-  // const enabledisableStaffRequest = useCallback(
-  //   async function enabledisableStaffRequest(id, action) {
-  //     try {
-  //       const url = `${BASEURL}${APIRoutes.enabledisableStaff}?id=${id}&action=${action}`;
-  //       const response = await axios.get(url);
-  //       if (response.status === 200) {
-  //         if (response.data.success === true) {
-  //           setSnackMsg({
-  //             isOpen: true,
-  //             isSuccess: true,
-  //             message: response.data.message,
-  //           });
-  //           fetchData(
-  //             paginationModel.page + 1,
-  //             paginationModel.pageSize,
-  //             searchQuery,
-  //             filters,
-  //             sortModel
-  //           );
-  //         } else {
-  //           setSnackMsg({
-  //             isOpen: true,
-  //             isSuccess: false,
-  //             message: response.data.message,
-  //           });
-  //         }
-  //       }
-  //     } catch (error) {
-  //       setSnackMsg({
-  //         isOpen: true,
-  //         isSuccess: false,
-  //         message: error.message,
-  //       });
-  //     }
-  //   },
-  //   [fetchData, paginationModel, searchQuery, filters, sortModel]
-  // );
 
   useEffect(() => {
     fetchData(
       paginationModel.page + 1,
       paginationModel.pageSize,
       searchQuery,
+      filters,
       sortModel
     );
-  }, [paginationModel, fetchData, searchQuery, sortModel]);
+  }, [paginationModel, fetchData, searchQuery, filters, sortModel]);
 
   const handleSort = (field) => {
     let sort = "asc"; // default sorting direction
@@ -170,73 +159,35 @@ export default function StaffListPage() {
       paginationModel.page + 1,
       paginationModel.pageSize,
       searchQuery,
+      filters,
       sortModel
     );
   };
 
   const handleView = (row) => {
     console.log("View:", row);
-    navigate(`/view-staff/${row._id}`);
-  };
-
-  const handleEdit = (row) => {
-    console.log("Edit:", row);
-    navigate(`/edit-staff/${row._id}`);
-  };
-
-  const handleEnableDisable = (row) => {
-    console.log("Disable:", row);
-    setSelectedStaff(row);
-    if (row.isDisable === false) {
-      setActionModal((prevState) => {
-        return {
-          isOpen: true,
-          title: "Disable Staff",
-          message: "Do you really want to disable this staff ?",
-          action: "DISABLE",
-        };
-      });
-    } else {
-      setActionModal((prevState) => {
-        return {
-          isOpen: true,
-          title: "Enable Staff",
-          message: "Do you really want to enable this staff ?",
-          action: "ENABLE",
-        };
-      });
-    }
+    navigate(`/view-user/${row._id}`);
   };
 
   const handleDelete = (row) => {
     console.log("Delete:", row);
-    setSelectedStaff(row);
+    setSelectedUser(row);
     setActionModal((prevState) => {
       return {
         isOpen: true,
-        title: "Delete Staff",
-        message: "Do you really want to delete this staff member ?",
+        title: "Delete User",
+        message: "Do you really want to delete this user ?",
         action: "DELETE",
       };
     });
   };
 
-  const handleAddNewStaff = () => {
-    console.log("Add New Staff");
-    navigate("/add-new-staff");
-  };
-
   const handleActionModalClose = (option) => {
     if (option === true) {
       if (actionModal.action === "DELETE") {
-        deleteStaffRequest(selectedStaff._id);
+        deleteUserRequest(selectedUser._id);
       }
-      // else if (actionModal.action === "DISABLE") {
-      //   enabledisableStaffRequest(selectedStaff._id, actionModal.action);
-      // } else if (actionModal.action === "ENABLE") {
-      //   enabledisableStaffRequest(selectedStaff._id, actionModal.action);
-      // }
-      setSelectedStaff(null);
+      setSelectedUser(null);
       setActionModal((prevState) => {
         return {
           isOpen: false,
@@ -252,7 +203,7 @@ export default function StaffListPage() {
         message: "",
         action: "",
       });
-      setSelectedStaff(null);
+      setSelectedUser(null);
     }
   };
 
@@ -267,7 +218,7 @@ export default function StaffListPage() {
     },
     {
       field: "name",
-      headerName: "Staff Name",
+      headerName: "Name",
       flex: 1.8,
       disableColumnMenu: true,
       pinned: true,
@@ -276,14 +227,14 @@ export default function StaffListPage() {
     {
       field: "emailId",
       headerName: "Email Id",
-      flex: 1.5,
+      flex: 2,
       sortable: false,
       disableColumnMenu: true,
       pinned: true,
     },
     {
       field: "createdAt",
-      headerName: "Created",
+      headerName: "Created Date",
       flex: 1.5,
       sortable: true,
       disableColumnMenu: true,
@@ -293,7 +244,7 @@ export default function StaffListPage() {
     },
     {
       field: "updatedAt",
-      headerName: "Updated",
+      headerName: "Updated Date",
       flex: 1.5,
       sortable: true,
       disableColumnMenu: true,
@@ -312,35 +263,11 @@ export default function StaffListPage() {
         <div>
           <a
             href="#"
-            onClick={() => handleEdit(params.row)}
-            className="text-info"
-          >
-            <i className="mdi mdi-pencil font-size-22"></i>
-          </a>
-          <span className="ms-3"></span>
-          <a
-            href="#"
             onClick={() => handleView(params.row)}
-            className="text-orange"
+            className="text-success"
           >
-            <i className="mdi mdi-eye font-size-22"></i>
+            <i className={"mdi mdi-eye font-size-22"}></i>
           </a>
-          {/* <span className="ms-3"></span>
-          <a
-            href="#"
-            onClick={() => handleEnableDisable(params.row)}
-            className={
-              params.row.isDisable === true ? "text-secondary" : "text-success"
-            }
-          >
-            <i
-              className={
-                params.row.isDisable === true
-                  ? "ri-toggle-line font-size-22"
-                  : "ri-toggle-fill font-size-22"
-              }
-            ></i>
-          </a> */}
           <span className="ms-3"></span>
           <a
             href="#"
@@ -377,17 +304,13 @@ export default function StaffListPage() {
             handleActionModalClose={handleActionModalClose}
           />
           <CustomSnackBar snackBarMsg={snackBarMsg} setSnackMsg={setSnackMsg} />
-          <PageTitleWithButton
-            title="Staff List"
-            label="Add Staff Staff"
-            onButtonClick={handleAddNewStaff}
-          />
+          <Breadcrumbs title="Users List" breadcrumbItems={[]} />
           <Card>
             <CardBody>
               <Row className="align-items-center">
-                <Col lg="6">
+                <Col>
                   <DataTableSearchBar
-                    text={"Search Staff..."}
+                    text={"Search Users..."}
                     value={searchQuery}
                     onSearch={setSearchQuery}
                   />

@@ -226,7 +226,7 @@ const ResetPasswordPage = () => {
                               Reset Password
                             </h4>
                             <p className="text-muted">
-                              Reset your password to Snap Share.
+                              Reset your password to Coffee Shop.
                             </p>
                           </div>
                         </div>

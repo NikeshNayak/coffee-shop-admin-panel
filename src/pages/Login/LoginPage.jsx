@@ -81,35 +81,7 @@ const Login = () => {
       localStorage.setItem("staffId", data.userDetails._id);
       localStorage.setItem("userType", data.userDetails.userType);
       localStorage.setItem("token", data.accessToken);
-      if (data.userDetails.userType === "STAFF") {
-        const permissionsMap = {
-          dashboard: "/",
-          companies: "/companies",
-          agents: "/agents",
-          categories: "/categories",
-          keys: "/keys",
-          reports: "/reports",
-        };
-
-        const userPermissions = data.userDetails?.permissions || [];
-        const userPermissionsObject = userPermissions.reduce(
-          (acc, { groupPermissionAlias }) => {
-            acc[groupPermissionAlias] = true;
-            return acc;
-          },
-          {}
-        );
-
-        for (const [key, path] of Object.entries(permissionsMap)) {
-          if (userPermissionsObject[key]) {
-            navigate(path);
-            break; // Navigate to the first matching permission and exit the loop
-          }
-        }
-      }
-      else {
-        navigate("/");
-      }
+      navigate("/");
     } else if (error) {
       setSnackMsg({
         isOpen: true,

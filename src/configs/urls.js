@@ -6,7 +6,7 @@ const prod = {
 };
 
 const dev = {
-  HOSTURL: "http://localhost:36900/api/",
+  HOSTURL: "http://localhost:8080/",
   COMPANYBASEURL: "http://localhost:36903/",
   AGENTBASEURL: "http://localhost:36904/",
   CATEGORYBASEURL: "http://localhost:36905/",

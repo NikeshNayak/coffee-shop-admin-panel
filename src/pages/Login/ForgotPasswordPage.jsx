@@ -49,26 +49,26 @@ const ForgotPasswordPage = () => {
   } = useHttp(`${BASEURL}${APIRoutes.forgotpassword}`, requestConfig);
 
   async function handleSubmit(event) {
-    event.preventDefault();
+    // event.preventDefault();
 
-    setValidateForm(true); // Trigger validation on all fields
+    // setValidateForm(true); // Trigger validation on all fields
 
-    // Perform validation check
-    const isValid = Object.values(formData).every(
-      (value) => value.trim() !== ""
-    );
-    if (!isValid) {
-      setSnackMsg({
-        isOpen: true,
-        isSuccess: false,
-        message: "Please fill out all required fields.",
-      });
-      return;
-    }
-    const fd = new FormData(event.target);
-    const keysData = Object.fromEntries(fd.entries());
-    console.log(keysData);
-    sendRequest(JSON.stringify(keysData));
+    // // Perform validation check
+    // const isValid = Object.values(formData).every(
+    //   (value) => value.trim() !== ""
+    // );
+    // if (!isValid) {
+    //   setSnackMsg({
+    //     isOpen: true,
+    //     isSuccess: false,
+    //     message: "Please fill out all required fields.",
+    //   });
+    //   return;
+    // }
+    // const fd = new FormData(event.target);
+    // const keysData = Object.fromEntries(fd.entries());
+    // console.log(keysData);
+    // sendRequest(JSON.stringify(keysData));
   }
 
   function handleFinish() {
@@ -132,7 +132,7 @@ const ForgotPasswordPage = () => {
                               Reset Password
                             </h4>
                             <p className="text-muted">
-                              Reset your password to Snap Share.
+                              Reset your password to Coffe Shop.
                             </p>
                           </div>
                         </div>
